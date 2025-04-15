@@ -1,0 +1,6 @@
+@Kindle_Verse_HostAddress = http://localhost:5150
+
+GET {{Kindle_Verse_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
