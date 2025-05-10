@@ -215,11 +215,6 @@ namespace Kindle_Verse.Controllers
                     return NotFound("User not found.");
                 }
 
-                if (user.EmailConfirmed)
-                {
-                    return BadRequest("Email is already confirmed. Please log in.");
-                }
-
                 // Generate new OTP
                 var otp = GenerateOTP();
 
