@@ -12,6 +12,9 @@ namespace Kindle_Verse.Models.Requests
         public string NewPassword { get; set; }
 
         [Required]
-        public string ConfirmPassword { get; set; } 
+        public string ConfirmPassword { get; set; }
+
+        [Required]
+        public string Email { get; set; }
     }
 }

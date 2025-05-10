@@ -6,6 +6,7 @@ using Kindle_Verse.Services;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 
 namespace Kindle_Verse.Controllers
 {
@@ -55,7 +56,7 @@ namespace Kindle_Verse.Controllers
         {
             var admin = _context.Admins.FirstOrDefault(a => a.Email == dto.Email);
             if (admin == null)
-                return Ok("If the email exists, a reset code has been sent.");
+                return Ok("If the email exists, a reset code has been sent."); // Prevent email leak
 
             var otp = new Random().Next(100000, 999999).ToString();
 
@@ -66,30 +67,50 @@ namespace Kindle_Verse.Controllers
 
             return Ok("Reset code sent to email.");
         }
-    
 
         [HttpPost("reset-password")]
         public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordAdminDto dto)
         {
-            // Retrieve OTP from memory cache using email as part of the key
-            var cachedOtp = _memoryCache.Get<string>($"AdminOTP_{dto.Otp}");
-            
+            // Log for debugging
+            Console.WriteLine($"Received OTP: {dto.Otp}, Email: {dto.Email}");
 
+            // Retrieve OTP from memory cache using email as part of the key
+            var cachedOtp = _memoryCache.Get<string>($"AdminOTP_{dto.Email}");
+            if (cachedOtp == null)
+            {
+                Console.WriteLine("OTP not found in cache.");
+                return BadRequest("Invalid or expired OTP.");
+            }
+
+            // Log OTP check
+            Console.WriteLine($"Comparing OTP: {dto.Otp} with Cached OTP: {cachedOtp}");
+
+            if (cachedOtp != dto.Otp)
+            {
+                return BadRequest("Invalid or expired OTP.");
+            }
+
+            // Ensure new password and confirm password match
             if (dto.NewPassword != dto.ConfirmPassword)
             {
                 return BadRequest("New password and confirm password do not match.");
             }
 
-            // Find admin by email (assuming OTP is linked to admin's email)
-            var admin = _context.Admins.FirstOrDefault(a => a.Email == dto.Otp); // Error here, should get the email from another source, not OTP.
+            // Retrieve the admin by email
+            var admin = await _context.Admins.FirstOrDefaultAsync(a => a.Email == dto.Email);
             if (admin == null)
+            {
                 return BadRequest("Admin not found.");
+            }
 
+            // Update the password
             admin.Password = dto.NewPassword;
             await _context.SaveChangesAsync();
 
             return Ok("Password has been reset successfully.");
         }
+
+
     }
 
 }
