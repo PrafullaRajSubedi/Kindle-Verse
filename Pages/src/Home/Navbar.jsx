@@ -6,12 +6,14 @@ import {
   Heart,
   ShoppingCart,
   Menu,
-  X
+  X,
+  Bell
 } from 'lucide-react';
 
 export default function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [notificationCount, setNotificationCount] = useState(3); // Example notification count
     const navItems = [
     { label: 'HOME',         to: '/' },
     { label: 'SHOP',         to: '/shop' },
@@ -121,6 +123,26 @@ export default function Navbar() {
               <button aria-label="Cart" className="p-2 hover:bg-neutral-100 rounded-full transition">
                 <ShoppingCart className="h-5 w-5" />
               </button>
+
+              {/* Notification Icon - Added after cart */}
+              <div className="relative">
+                <button aria-label="Notifications" className="p-2 hover:bg-neutral-100 rounded-full transition">
+                  <Bell className="h-5 w-5" />
+                  {notificationCount > 0 && (
+                    <span className="absolute top-0 right-0 h-4 w-4 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
+                      {notificationCount > 9 ? '9+' : notificationCount}
+                    </span>
+                  )}
+                </button>
+                
+                {/* Notification dropdown - optional */}
+                <div className="
+                  absolute right-0 mt-2 w-64 bg-white border border-neutral-200
+                  shadow-lg rounded-lg hidden group-hover:block
+                ">
+                  {/* You can add notification items here if needed */}
+                </div>
+              </div>
 
               {/* Mobile menu toggle */}
               <button
