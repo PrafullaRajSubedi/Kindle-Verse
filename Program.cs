@@ -11,7 +11,7 @@ using Kindle_Verse.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Configure logging
+// Configure loggingcor
 builder.Logging.ClearProviders();
 builder.Logging.AddConsole();
 builder.Logging.AddDebug();
