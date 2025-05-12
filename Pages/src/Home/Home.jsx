@@ -161,20 +161,20 @@ export default function Home() {
           <div className="flex items-center">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
               <div className="flex flex-col justify-center order-2 md:order-1">
-                <div className="absolute top-8 right-8 bg-red-500 text-white px-4 py-2 rounded-full text-sm font-bold md:hidden">
+                <div className="absolute top-8 right-8 bg-blue-700 text-white px-4 py-2 rounded-full text-sm font-bold md:hidden">
                   {heroBooks[currentSlide].discount}
                 </div>
                 <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold mb-4 leading-tight">
                   {heroBooks[currentSlide].title}
                 </h1>
                 <p className="text-lg sm:text-xl mb-2 text-neutral-600">By {heroBooks[currentSlide].author}</p>
-                <p className="text-xl sm:text-2xl font-medium mb-8">Best Offer <span className="text-red-500">{heroBooks[currentSlide].discount}</span>. Grab it now!</p>
+                <p className="text-xl sm:text-2xl font-medium mb-8">Best Offer <span className="text-blue-700">{heroBooks[currentSlide].discount}</span>. Grab it now!</p>
                 
                 <div className="flex space-x-4">
-                  <button className="bg-red-500 hover:bg-red-600 text-white px-6 py-3 rounded-full font-medium shadow-lg hover:shadow-xl transition-all">
+                  <button className="bg-blue-700 hover:bg-blue-900 text-white px-6 py-3 rounded-full font-medium shadow-lg hover:shadow-xl transition-all">
                     Shop Now
                   </button>
-                  <button className="bg-white hover:bg-neutral-100 text-red-500 px-6 py-3 rounded-full font-medium shadow-lg hover:shadow-xl transition-all border border-red-500">
+                  <button className="bg-white hover:bg-neutral-100 text-blue-700 px-6 py-3 rounded-full font-medium shadow-lg hover:shadow-xl transition-all border border-blue-700">
                     View Details
                   </button>
                 </div>
@@ -184,14 +184,14 @@ export default function Home() {
                     <button
                       key={index}
                       onClick={() => setCurrentSlide(index)}
-                      className={`w-3 h-3 rounded-full NPR{currentSlide === index ? 'bg-red-500' : 'bg-neutral-300'}`}
+                      className={`w-3 h-3 rounded-full NPR{currentSlide === index ? 'bg-blue-700' : 'bg-neutral-300'}`}
                     />
                   ))}
                 </div>
               </div>
               
               <div className="relative order-1 md:order-2 flex justify-center items-center">
-                <div className="hidden md:block absolute -top-6 -right-6 bg-red-500 text-white px-6 py-3 rounded-full font-bold shadow-lg transform rotate-12">
+                <div className="hidden md:block absolute -top-6 -right-6 bg-blue-700 text-white px-6 py-3 rounded-full font-bold shadow-lg transform rotate-12">
                   {heroBooks[currentSlide].discount}
                 </div>
                 <div className="relative w-64 h-80 md:w-72 md:h-96 shadow-2xl rounded-lg overflow-hidden transform transition-transform hover:scale-105">
@@ -213,15 +213,15 @@ export default function Home() {
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
             <div className="flex items-center justify-center space-x-2">
-              <MapPin className="h-5 w-5 text-red-500" />
+              <MapPin className="h-5 w-5 text-blue-700" />
               <span className="text-neutral-700">Free shipping on orders over NPR35</span>
             </div>
             <div className="flex items-center justify-center space-x-2">
-              <Phone className="h-5 w-5 text-red-500" />
+              <Phone className="h-5 w-5 text-blue-700" />
               <span className="text-neutral-700">24/7 Customer Support</span>
             </div>
             <div className="flex items-center justify-center space-x-2">
-              <Heart className="h-5 w-5 text-red-500" />
+              <Heart className="h-5 w-5 text-blue-700" />
               <span className="text-neutral-700">30-day money-back guarantee</span>
             </div>
           </div>
@@ -277,7 +277,7 @@ export default function Home() {
         <div className="container mx-auto px-4">
           <div className="flex justify-between items-center mb-8">
             <h2 className="text-3xl font-bold">Best Selling Books</h2>
-            <a href="#" className="text-red-500 hover:text-red-600 font-medium flex items-center">
+            <a href="#" className="text-blue-700 hover:text-blue-700 font-medium flex items-center">
               View All <ChevronRight className="h-4 w-4 ml-1" />
             </a>
           </div>
@@ -293,10 +293,10 @@ export default function Home() {
                       className="object-cover w-full h-64 transition-transform duration-300 group-hover:scale-105"
                     />
                     <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                      <button className="bg-white p-2 rounded-full shadow-md hover:bg-red-500 hover:text-white transition-colors">
+                      <button className="bg-white p-2 rounded-full shadow-md hover:bg-blue-900 hover:text-white transition-colors">
                         <ShoppingCart className="h-5 w-5" />
                       </button>
-                      <button className="bg-white p-2 rounded-full shadow-md hover:bg-red-500 hover:text-white transition-colors">
+                      <button className="bg-white p-2 rounded-full shadow-md hover:bg-blue-900 hover:text-white transition-colors">
                         <Heart className="h-5 w-5" />
                       </button>
                     </div>
@@ -307,7 +307,7 @@ export default function Home() {
                       {renderStars(book.rating)}
                     </div>
                     
-                    <h3 className="font-bold text-lg mb-1 group-hover:text-red-500 transition-colors">
+                    <h3 className="font-bold text-lg mb-1 group-hover:text-blue-700 transition-colors">
                       {book.title}
                     </h3>
                     <p className="text-neutral-600 text-sm mb-2">{book.author}</p>
@@ -357,10 +357,10 @@ export default function Home() {
               <div className="mb-6">
                 <span className="text-2xl font-bold">NPR2222.99</span>
                 <span className="text-lg line-through ml-2 text-white/70">NPR332.99</span>
-                <span className="ml-2 bg-white text-red-500 px-2 py-1 rounded text-sm font-bold">30% OFF</span>
+                <span className="ml-2 bg-white text-blue-700 px-2 py-1 rounded text-sm font-bold">30% OFF</span>
               </div>
               
-              <button className="bg-white text-red-500 hover:bg-neutral-100 px-8 py-3 rounded-full font-medium shadow-lg hover:shadow-xl transition-all">
+              <button className="bg-white text-blue-700 hover:bg-neutral-100 px-8 py-3 rounded-full font-medium shadow-lg hover:shadow-xl transition-all">
                 Add to Cart
               </button>
             </div>
@@ -373,7 +373,7 @@ export default function Home() {
         <div className="container mx-auto px-4">
           <div className="flex justify-between items-center mb-8">
             <h2 className="text-3xl font-bold">New Arrivals</h2>
-            <a href="#" className="text-red-500 hover:text-red-600 font-medium flex items-center">
+            <a href="#" className="text-blue-700 hover:text-blue-900 font-medium flex items-center">
               View All <ChevronRight className="h-4 w-4 ml-1" />
             </a>
           </div>
@@ -388,14 +388,14 @@ export default function Home() {
                       alt={book.title} 
                       className="object-cover w-full h-64 transition-transform duration-300 group-hover:scale-105"
                     />
-                    <div className="absolute top-0 left-0 bg-red-500 text-white px-3 py-1 text-xs font-bold">
+                    <div className="absolute top-0 left-0 bg-blue-700 text-white px-3 py-1 text-xs font-bold">
                       NEW
                     </div>
                     <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                      <button className="bg-white p-2 rounded-full shadow-md hover:bg-red-500 hover:text-white transition-colors">
+                      <button className="bg-white p-2 rounded-full shadow-md hover:bg-blue-700 hover:text-white transition-colors">
                         <ShoppingCart className="h-5 w-5" />
                       </button>
-                      <button className="bg-white p-2 rounded-full shadow-md hover:bg-red-500 hover:text-white transition-colors">
+                      <button className="bg-white p-2 rounded-full shadow-md hover:bg-blue-700 hover:text-white transition-colors">
                         <Heart className="h-5 w-5" />
                       </button>
                     </div>
@@ -406,7 +406,7 @@ export default function Home() {
                       {renderStars(book.rating)}
                     </div>
                     
-                    <h3 className="font-bold text-lg mb-1 group-hover:text-red-500 transition-colors">
+                    <h3 className="font-bold text-lg mb-1 group-hover:text-blue-900 transition-colors">
                       {book.title}
                     </h3>
                     <p className="text-neutral-600 text-sm mb-2">{book.author}</p>
@@ -440,7 +440,7 @@ export default function Home() {
                 </div>
                 <div className="p-4">
                   <p className="text-neutral-600 mb-4">{author.books} Published Books</p>
-                  <button className="w-full bg-neutral-100 hover:bg-red-500 hover:text-white font-medium py-2 rounded-full transition-colors">
+                  <button className="w-full bg-neutral-100 hover:bg-blue-900 hover:text-white font-medium py-2 rounded-full transition-colors">
                     View Author
                   </button>
                 </div>
@@ -462,9 +462,9 @@ export default function Home() {
               <input 
                 type="email" 
                 placeholder="Your email address" 
-                className="px-4 py-3 rounded-full border border-neutral-300 focus:outline-none focus:border-red-500 flex-grow max-w-md"
+                className="px-4 py-3 rounded-full border border-neutral-300 focus:outline-none focus:border-blue-700 flex-grow max-w-md"
               />
-              <button className="bg-red-500 hover:bg-red-600 text-white px-6 py-3 rounded-full font-medium transition-colors">
+              <button className="bg-blue-700 hover:bg-blue-900 text-white px-6 py-3 rounded-full font-medium transition-colors">
                 Subscribe
               </button>
             </div>

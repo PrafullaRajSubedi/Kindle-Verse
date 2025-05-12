@@ -40,8 +40,8 @@ export default function Navbar() {
           <div className="flex items-center justify-between py-4">
             {/* Logo */}
             <div className="text-2xl font-bold flex items-center">
-              <span className="text-red-500">K</span>indel
-              <span className="text-red-500">V</span>erse
+              <span className="text-blue-700">K</span>indel
+              <span className="text-blue-700">V</span>erse
             </div>
 
             {/* Desktop nav */}
@@ -50,7 +50,7 @@ export default function Navbar() {
               <Link
                 key={to}
                 to={to}
-                className="font-medium text-sm hover:text-red-500 transition-colors"
+                className="font-medium text-sm hover:text-blue-900 transition-colors"
               >
                 {label}
               </Link>
@@ -142,7 +142,7 @@ export default function Navbar() {
                   key={to}
                   to={to}
                   onClick={() => setMobileMenuOpen(false)}
-                  className="font-medium text-sm hover:text-red-500 transition-colors"
+                  className="font-medium text-sm hover:text-blue-900 transition-colors"
                 >
                   {label}
                 </Link>

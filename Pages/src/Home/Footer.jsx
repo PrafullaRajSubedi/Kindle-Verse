@@ -16,20 +16,20 @@ export default function Footer() {
           {/* Branding & social */}
           <div>
             <div className="text-2xl font-bold mb-6">
-              <span className="text-red-500">K</span>indel
-              <span className="text-red-500">V</span>erse
+              <span className="text-blue-700">K</span>indel
+              <span className="text-blue-700">V</span>erse
             </div>
             <p className="text-neutral-400 mb-6">
               Your premier destination for the latest books, exclusive author content, and literary community.
             </p>
             <div className="flex space-x-4">
-              <a href="#" className="bg-neutral-800 hover:bg-red-500 p-2 rounded-full transition-colors">
+              <a href="#" className="bg-neutral-800 hover:blue-900 p-2 rounded-full transition-colors">
                 <Facebook className="h-5 w-5"/>
               </a>
-              <a href="#" className="bg-neutral-800 hover:bg-red-500 p-2 rounded-full transition-colors">
+              <a href="#" className="bg-neutral-800 hover:bg-blue-900 p-2 rounded-full transition-colors">
                 <Twitter className="h-5 w-5"/>
               </a>
-              <a href="#" className="bg-neutral-800 hover:bg-red-500 p-2 rounded-full transition-colors">
+              <a href="#" className="bg-neutral-800 hover:bg-blue-900 p-2 rounded-full transition-colors">
                 <Instagram className="h-5 w-5"/>
               </a>
             </div>
@@ -64,15 +64,15 @@ export default function Footer() {
             <h3 className="text-lg font-bold mb-6">Contact</h3>
             <ul className="space-y-3">
               <li className="flex items-center">
-                <MapPin className="h-5 w-5 text-red-500 mr-2"/>
+                <MapPin className="h-5 w-5 text-blue-700 mr-2"/>
                 <span className="text-neutral-400">Kamal Margh, Kathmandu</span>
               </li>
               <li className="flex items-center">
-                <Phone className="h-5 w-5 text-red-500 mr-2"/>
+                <Phone className="h-5 w-5 text-blue-700 mr-2"/>
                 <span className="text-neutral-400">+977 9889213122</span>
               </li>
               <li className="flex items-center">
-                <Mail className="h-5 w-5 text-red-500 mr-2"/>
+                <Mail className="h-5 w-5 text-blue-700 mr-2"/>
                 <span className="text-neutral-400">hello@kindelverse.com</span>
               </li>
             </ul>
