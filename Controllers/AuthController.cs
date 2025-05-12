@@ -44,7 +44,7 @@ namespace Kindle_Verse.Controllers
 
         // Register endpoint
         [HttpPost("register")]
-        public async Task<IActionResult> RegisterUser(UserRegisterDto dto)
+        public async Task<IActionResult> RegisterUser([FromBody] UserRegisterDto dto)
         {
             try
             {
