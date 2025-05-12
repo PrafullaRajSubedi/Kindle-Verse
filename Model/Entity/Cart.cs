@@ -1,17 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using CourseWork.Model.Entity;
 
-namespace CourseWork.Model.Entity
+public class Cart
 {
-    public class Cart
-    {
-        public int Id { get; set; }
+    public int Id { get; set; }
 
-        public int UserId { get; set; }
-        public User User { get; set; }
+    public string UserId { get; set; }
+    public User User { get; set; }
 
-        public ICollection<CartItem> CartItems { get; set; }
+    public ICollection<CartItem> CartItems { get; set; }
 
-        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-    }
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 }

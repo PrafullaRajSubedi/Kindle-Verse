@@ -1,4 +1,4 @@
-using CourseWork.Database;
+using CourseWork.Data;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
