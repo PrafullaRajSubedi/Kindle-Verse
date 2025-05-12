@@ -1,7 +1,7 @@
 ﻿// src/pages/adminHome/adminHome.jsx
 
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import axios from "axios";
 import {
     BookOpen,
@@ -18,6 +18,7 @@ const API_BASE = "http://localhost:5150/api/admin";
 
 export default function AdminHome() {
     const navigate = useNavigate();
+    const location = useLocation();
 
     // UI state
     const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -25,7 +26,7 @@ export default function AdminHome() {
     const [showAddForm, setShowAddForm] = useState(false);
     const [editingBookId, setEditingBookId] = useState(null);
 
-    // Form state
+    // form fields
     const [bookForm, setBookForm] = useState({
         title: "",
         author: "",
@@ -44,37 +45,40 @@ export default function AdminHome() {
         coverImage: "",
     });
 
-    // Books list in PascalCase shape
+    // book list
     const [books, setBooks] = useState([]);
 
+    // axios with JWT
     const token = localStorage.getItem("token");
     const api = axios.create({
         baseURL: API_BASE,
         headers: { Authorization: `Bearer ${token}` },
     });
 
-    // Normalize server JSON (camelCase) → your PascalCase fields
-    const normalize = (b) => ({
-        Id: b.Id ?? b.id,
-        Title: b.Title ?? b.title,
-        Author: b.Author ?? b.author,
-        Publisher: b.Publisher ?? b.publisher,
-        Genre: b.Genre ?? b.genre,
-        ISBN: b.ISBN ?? b.isbn,
-        Format: b.Format ?? b.format,
-        Language: b.Language ?? b.language,
-        PublicationDate: b.PublicationDate ?? b.publicationDate,
-        Price: b.Price ?? b.price,
-        Discount: b.Discount ?? b.discount,
-        Stock: b.Stock ?? b.stock,
-        Description: b.Description ?? b.description,
-        IsOnSale: b.IsOnSale ?? b.isOnSale,
-        DiscountStartDate: b.DiscountStartDate ?? b.discountStartDate,
-        DiscountEndDate: b.DiscountEndDate ?? b.discountEndDate,
-        CoverImagePath: b.CoverImagePath ?? b.coverImagePath,
-    });
+    // normalize API → PascalCase + compute sale price
+    const normalize = (b) => {
+        const listPrice = parseFloat(b.price) || 0;
+        const discount = parseFloat(b.discount) || 0;
+        return {
+            Id: b.id,
+            Title: b.title,
+            Author: b.author,
+            Publisher: b.publisher,
+            Genre: b.genre,
+            ISBN: b.isbn,
+            Format: b.format,
+            Language: b.language,
+            PublicationDate: b.publicationDate,
+            OriginalPrice: listPrice,
+            Discount: discount,
+            SalePrice: listPrice - discount,
+            Stock: b.stock,
+            Description: b.description,
+            CoverImagePath: b.coverImagePath,
+        };
+    };
 
-    // Load books on mount
+    // load books once
     useEffect(() => {
         (async () => {
             try {
@@ -86,54 +90,61 @@ export default function AdminHome() {
         })();
     }, [api, navigate]);
 
+    // logout
     const handleLogout = () => {
         localStorage.removeItem("token");
         navigate("/admin/login");
     };
 
+    // form input handler
     const handleInputChange = (e) => {
         const { name, value } = e.target;
         setBookForm((f) => ({ ...f, [name]: value }));
     };
 
-    const makeDto = () => ({
-        Title: bookForm.title,
-        Author: bookForm.author,
-        ISBN: bookForm.isbn,
-        Description: bookForm.description,
-        Format: bookForm.format,
-        Language: bookForm.publicationLanguage,
-        Genre: bookForm.genre,
-        Publisher: bookForm.publisher,
-        PublicationDate: bookForm.publishDate,
-        Price:
-            bookForm.onSale === "yes"
-                ? parseFloat(bookForm.offerPrice)
-                : parseFloat(bookForm.originalPrice),
-        Stock: parseInt(bookForm.stock, 10),
-        Discount:
-            bookForm.onSale === "yes"
-                ? parseFloat(bookForm.originalPrice) - parseFloat(bookForm.offerPrice)
-                : null,
-        IsOnSale: bookForm.onSale === "yes",
-        DiscountStartDate:
-            bookForm.onSale === "yes" ? bookForm.offerPriceDate : null,
-        DiscountEndDate:
-            bookForm.onSale === "yes" ? bookForm.offerPriceDate : null,
-        CoverImagePath: bookForm.coverImage,
-    });
+    // build DTO for create/update
+    const makeDto = () => {
+        const orig = parseFloat(bookForm.originalPrice) || 0;
+        const offer = parseFloat(bookForm.offerPrice) || 0;
+        const disc = bookForm.onSale === "yes" ? orig - offer : 0;
 
+        console.log("→ computed list price (orig):", orig);
+        console.log("→ computed discount:", disc);
+
+        return {
+            Title: bookForm.title,
+            Author: bookForm.author,
+            ISBN: bookForm.isbn,
+            Description: bookForm.description,
+            Format: bookForm.format,
+            Language: bookForm.publicationLanguage,
+            Genre: bookForm.genre,
+            Publisher: bookForm.publisher,
+            PublicationDate: bookForm.publishDate,
+            Price: orig,   // ← this is what you want in your DB's Price
+            Stock: parseInt(bookForm.stock, 10),
+            Discount: disc,
+            IsOnSale: bookForm.onSale === "yes",
+            DiscountStartDate: bookForm.onSale === "yes" ? bookForm.offerPriceDate : null,
+            DiscountEndDate: bookForm.onSale === "yes" ? bookForm.offerPriceDate : null,
+            CoverImagePath: bookForm.coverImage,
+        };
+    };
+
+    // submit handler
     const handleBookSubmit = async () => {
         try {
             const dto = makeDto();
+            console.log("Submitting DTO payload:", dto);
             if (editingBookId !== null) {
                 await api.put(`/update-book/${editingBookId}`, dto);
             } else {
                 await api.post("/create-book", dto);
             }
+            // refresh
             const { data } = await api.get("/manage-books");
             setBooks(Array.isArray(data) ? data.map(normalize) : []);
-            // reset form
+            // reset
             setShowAddForm(false);
             setEditingBookId(null);
             setBookForm({
@@ -158,6 +169,7 @@ export default function AdminHome() {
         }
     };
 
+    // delete
     const handleDeleteBook = async (id) => {
         if (!window.confirm("Delete this book?")) return;
         try {
@@ -168,6 +180,7 @@ export default function AdminHome() {
         }
     };
 
+    // open modal to edit
     const handleEditBook = (b) => {
         setBookForm({
             title: b.Title,
@@ -178,14 +191,10 @@ export default function AdminHome() {
             publishDate: b.PublicationDate.split("T")[0],
             publicationLanguage: b.Language,
             format: b.Format,
-            originalPrice: b.Discount
-                ? (b.Price + b.Discount).toString()
-                : b.Price.toString(),
-            offerPrice: b.Discount ? b.Price.toString() : "",
-            offerPriceDate: b.DiscountStartDate
-                ? b.DiscountStartDate.split("T")[0]
-                : "",
-            onSale: b.IsOnSale ? "yes" : "no",
+            originalPrice: b.OriginalPrice.toString(),
+            offerPrice: b.Discount > 0 ? (b.OriginalPrice - b.Discount).toString() : "",
+            offerPriceDate: b.Discount > 0 ? b.DiscountStartDate.split("T")[0] : "",
+            onSale: b.Discount > 0 ? "yes" : "no",
             stock: b.Stock.toString(),
             description: b.Description,
             coverImage: b.CoverImagePath,
@@ -194,6 +203,7 @@ export default function AdminHome() {
         setShowAddForm(true);
     };
 
+    // filtered list
     const filteredBooks = books.filter((b) =>
         b.Title.toLowerCase().includes(searchQuery.toLowerCase())
     );
@@ -201,10 +211,7 @@ export default function AdminHome() {
     return (
         <div className="flex h-screen bg-gray-100">
             {/* Sidebar */}
-            <div
-                className={`bg-indigo-800 text-white w-64 ${sidebarOpen ? "block" : "hidden"
-                    } md:block`}
-            >
+            <div className={`bg-indigo-800 text-white w-64 ${sidebarOpen ? "block" : "hidden"} md:block`}>
                 <div className="flex items-center justify-between h-16 px-4 border-b border-indigo-700">
                     <div className="flex items-center">
                         <BookOpen size={24} className="mr-2" />
@@ -215,45 +222,45 @@ export default function AdminHome() {
                     </button>
                 </div>
                 <nav className="mt-6">
-                    {["books", "orders", "customers"].map((view) => (
-                        <div
-                            key={view}
-                            className={`px-4 py-3 cursor-pointer hover:bg-indigo-700 ${view === "books" ? "bg-indigo-900" : ""
-                                }`}
-                        >
-                            {view === "books"
-                                ? "Books"
-                                : view === "orders"
-                                    ? "Announcement"
-                                    : "Sales"}
-                        </div>
-                    ))}
+                    <Link
+                        to="/admin/home"
+                        className={`block px-4 py-3 hover:bg-indigo-700 ${location.pathname === "/admin/home" ? "bg-indigo-900" : ""
+                            }`}
+                    >
+                        Books
+                    </Link>
+                    <Link
+                        to="/admin/announcement"
+                        className={`block px-4 py-3 hover:bg-indigo-700 ${location.pathname === "/admin/announcement" ? "bg-indigo-900" : ""
+                            }`}
+                    >
+                        Announcement
+                    </Link>
+                    <Link
+                        to="/admin/sales"
+                        className={`block px-4 py-3 hover:bg-indigo-700 ${location.pathname === "/admin/sales" ? "bg-indigo-900" : ""
+                            }`}
+                    >
+                        Sales
+                    </Link>
                 </nav>
             </div>
 
             {/* Main */}
             <div className="flex-1 flex flex-col overflow-hidden">
                 <header className="bg-white shadow-sm h-16 flex items-center justify-between px-6">
-                    <button
-                        className="md:hidden"
-                        onClick={() => setSidebarOpen((o) => !o)}
-                    >
+                    <button className="md:hidden" onClick={() => setSidebarOpen((o) => !o)}>
                         <Menu size={24} />
                     </button>
-                    <h1 className="text-xl font-semibold text-gray-800">
-                        Book Management
-                    </h1>
-                    <button
-                        onClick={handleLogout}
-                        className="flex items-center space-x-1 text-gray-600 hover:text-red-600"
-                    >
+                    <h1 className="text-xl font-semibold text-gray-800">Book Management</h1>
+                    <button onClick={handleLogout} className="flex items-center space-x-1 text-gray-600 hover:text-red-600">
                         <LogOut size={20} />
                         <span className="hidden sm:inline">Logout</span>
                     </button>
                 </header>
 
                 <main className="flex-1 overflow-y-auto p-6">
-                    {/* Action Bar */}
+                    {/* Search & Add */}
                     <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
                         <div className="relative w-full sm:w-64 mb-4 sm:mb-0">
                             <input
@@ -263,10 +270,7 @@ export default function AdminHome() {
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
                             />
-                            <Search
-                                size={18}
-                                className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
-                            />
+                            <Search size={18} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
                         </div>
                         <button
                             className="flex items-center bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700"
@@ -276,23 +280,13 @@ export default function AdminHome() {
                         </button>
                     </div>
 
-                    {/* Book Table */}
+                    {/* Table */}
                     <div className="bg-white rounded-lg shadow overflow-hidden">
                         <div className="overflow-x-auto">
                             <table className="min-w-full divide-y divide-gray-200">
                                 <thead className="bg-gray-50">
                                     <tr>
-                                        {[
-                                            "Book",
-                                            "Author",
-                                            "Publisher",
-                                            "Genre",
-                                            "Format",
-                                            "ISBN",
-                                            "Price",
-                                            "Stock",
-                                            "Actions",
-                                        ].map((col) => (
+                                        {["Book", "Author", "Publisher", "Genre", "Format", "ISBN", "Price", "Stock", "Actions"].map((col) => (
                                             <th
                                                 key={col}
                                                 className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
@@ -309,56 +303,32 @@ export default function AdminHome() {
                                                 <td className="px-6 py-4 whitespace-nowrap">
                                                     <div className="flex items-center">
                                                         <div className="h-10 w-8 flex-shrink-0">
-                                                            <img
-                                                                className="h-10 w-8 rounded"
-                                                                src={b.CoverImagePath}
-                                                                alt={b.Title}
-                                                            />
+                                                            <img className="h-10 w-8 rounded" src={b.CoverImagePath} alt={b.Title} />
                                                         </div>
                                                         <div className="ml-4">
-                                                            <div className="text-sm font-medium text-gray-900">
-                                                                {b.Title}
-                                                            </div>
+                                                            <div className="text-sm font-medium text-gray-900">{b.Title}</div>
                                                         </div>
                                                     </div>
                                                 </td>
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{b.Author}</td>
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{b.Publisher}</td>
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{b.Genre}</td>
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{b.Format}</td>
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{b.ISBN}</td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                    {b.Author}
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                    {b.Publisher}
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                    {b.Genre}
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                    {b.Format}
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                    {b.ISBN}
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                    ${b.Price}
-                                                    {b.Discount != null && (
+                                                    ${b.SalePrice.toFixed(2)}
+                                                    {b.Discount > 0 && (
                                                         <span className="ml-2 line-through text-gray-400">
-                                                            ${(b.Price + b.Discount).toFixed(2)}
+                                                            ${b.OriginalPrice.toFixed(2)}
                                                         </span>
                                                     )}
                                                 </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                    {b.Stock}
-                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{b.Stock}</td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                                    <button
-                                                        onClick={() => handleEditBook(b)}
-                                                        className="text-indigo-600 hover:text-indigo-900 mr-4"
-                                                    >
+                                                    <button onClick={() => handleEditBook(b)} className="text-indigo-600 hover:text-indigo-900 mr-4">
                                                         <Edit size={18} />
                                                     </button>
-                                                    <button
-                                                        onClick={() => handleDeleteBook(b.Id)}
-                                                        className="text-red-600 hover:text-red-900"
-                                                    >
+                                                    <button onClick={() => handleDeleteBook(b.Id)} className="text-red-600 hover:text-red-900">
                                                         <Trash2 size={18} />
                                                     </button>
                                                 </td>
@@ -366,10 +336,7 @@ export default function AdminHome() {
                                         ))
                                     ) : (
                                         <tr>
-                                            <td
-                                                colSpan={9}
-                                                className="px-6 py-4 text-center text-sm text-gray-500"
-                                            >
+                                            <td colSpan={9} className="px-6 py-4 text-center text-sm text-gray-500">
                                                 No books found.
                                             </td>
                                         </tr>
@@ -381,7 +348,7 @@ export default function AdminHome() {
                 </main>
             </div>
 
-            {/* Add/Edit Book Modal */}
+            {/* Add / Edit Modal */}
             {showAddForm && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
                     <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-screen overflow-y-auto">
@@ -418,14 +385,8 @@ export default function AdminHome() {
                             </button>
                         </div>
 
-                        {/* Form */}
-                        <form
-                            className="p-6"
-                            onSubmit={(e) => {
-                                e.preventDefault();
-                                handleBookSubmit();
-                            }}
-                        >
+                        {/* Body */}
+                        <div className="p-6">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 {/* Book Title */}
                                 <div>
@@ -441,7 +402,6 @@ export default function AdminHome() {
                                         placeholder="Enter book title"
                                     />
                                 </div>
-
                                 {/* Author */}
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -456,7 +416,6 @@ export default function AdminHome() {
                                         placeholder="Enter author name"
                                     />
                                 </div>
-
                                 {/* Publisher */}
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -471,7 +430,6 @@ export default function AdminHome() {
                                         placeholder="Enter publisher"
                                     />
                                 </div>
-
                                 {/* Genre */}
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -482,11 +440,10 @@ export default function AdminHome() {
                                         name="genre"
                                         value={bookForm.genre}
                                         onChange={handleInputChange}
-                                        className="w-full px-4 py-2	border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
                                         placeholder="Enter genre"
                                     />
                                 </div>
-
                                 {/* Publication Language */}
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -497,11 +454,10 @@ export default function AdminHome() {
                                         name="publicationLanguage"
                                         value={bookForm.publicationLanguage}
                                         onChange={handleInputChange}
-                                        className="w-full px-4 py-2	border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
                                         placeholder="Enter language"
                                     />
                                 </div>
-
                                 {/* Format */}
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -512,11 +468,10 @@ export default function AdminHome() {
                                         name="format"
                                         value={bookForm.format}
                                         onChange={handleInputChange}
-                                        className="w-full px-4 py-2	border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
                                         placeholder="Enter format"
                                     />
                                 </div>
-
                                 {/* ISBN */}
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -531,7 +486,6 @@ export default function AdminHome() {
                                         placeholder="Enter ISBN"
                                     />
                                 </div>
-
                                 {/* Publication Date */}
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -545,7 +499,6 @@ export default function AdminHome() {
                                         className="w-full px-4 py-2	border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
                                     />
                                 </div>
-
                                 {/* Original Price */}
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -562,7 +515,6 @@ export default function AdminHome() {
                                         placeholder="0.00"
                                     />
                                 </div>
-
                                 {/* On Sale */}
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -593,7 +545,6 @@ export default function AdminHome() {
                                         </label>
                                     </div>
                                 </div>
-
                                 {/* Stock */}
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -609,8 +560,7 @@ export default function AdminHome() {
                                         placeholder="0"
                                     />
                                 </div>
-
-                                {/* Offer Price & Date */}
+                                {/* Offer Price & End Date */}
                                 {bookForm.onSale === "yes" && (
                                     <>
                                         <div>
@@ -642,11 +592,8 @@ export default function AdminHome() {
                                         </div>
                                     </>
                                 )}
-
                                 {/* Cover Image */}
-                                <div
-                                    className={bookForm.onSale === "yes" ? "md:col-span-2" : ""}
-                                >
+                                <div className={bookForm.onSale === "yes" ? "md:col-span-2" : ""}>
                                     <label className="block text-sm font-medium text-gray-700 mb-1">
                                         Cover Image
                                     </label>
@@ -664,9 +611,7 @@ export default function AdminHome() {
                                         </div>
                                         <div className="flex-1">
                                             <label className="flex flex-col items-center px-4 py-2 bg-white text-indigo-600 rounded-lg border border-indigo-600 cursor-pointer hover:bg-indigo-50">
-                                                <span className="text-sm font-medium">
-                                                    Choose file
-                                                </span>
+                                                <span className="text-sm font-medium">Choose file</span>
                                                 <input
                                                     type="file"
                                                     accept="image/*"
@@ -677,10 +622,7 @@ export default function AdminHome() {
                                                         if (file.size > 2 * 1024 * 1024) return;
                                                         const reader = new FileReader();
                                                         reader.onloadend = () =>
-                                                            setBookForm((f) => ({
-                                                                ...f,
-                                                                coverImage: reader.result,
-                                                            }));
+                                                            setBookForm((f) => ({ ...f, coverImage: reader.result }));
                                                         reader.readAsDataURL(file);
                                                     }}
                                                 />
@@ -690,7 +632,7 @@ export default function AdminHome() {
                                 </div>
                             </div>
 
-                            {/* Description & Actions */}
+                            {/* Description + Actions */}
                             <div className="px-6 pb-6">
                                 <label className="block text-sm font-medium text-gray-700 mb-1">
                                     Description
@@ -700,7 +642,7 @@ export default function AdminHome() {
                                     value={bookForm.description}
                                     onChange={handleInputChange}
                                     rows="4"
-                                    className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500"
+                                    className="w-full px-4 py-2	border rounded-lg focus:ring-2 focus:ring-indigo-500"
                                     placeholder="Enter book description"
                                 />
                                 <div className="mt-6 flex justify-end space-x-4">
@@ -712,14 +654,15 @@ export default function AdminHome() {
                                         Cancel
                                     </button>
                                     <button
-                                        type="submit"
+                                        type="button"
+                                        onClick={handleBookSubmit}
                                         className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
                                     >
                                         {editingBookId ? "Update Book" : "Add Book"}
                                     </button>
                                 </div>
                             </div>
-                        </form>
+                        </div>
                     </div>
                 </div>
             )}

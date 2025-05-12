@@ -9,7 +9,7 @@
     public string Genre { get; set; }
     public string Publisher { get; set; }
     public DateTime PublicationDate { get; set; }
-    public decimal Price { get; set; }
+    public decimal OriginalPrice { get; set; }
     public int Stock { get; set; }
     public decimal? Discount { get; set; }
     public bool IsOnSale { get; set; }
