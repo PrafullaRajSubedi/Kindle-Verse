@@ -400,9 +400,9 @@ namespace Kindle_Verse.Controllers
                         User = new
                         {
                             Id = user.Id,
-                            Email = user.Email,
-                            FirstName = user.FirstName,
-                            LastName = user.LastName
+                            Email = user.Email ?? "",
+                            FirstName = user.FirstName ?? "",
+                            LastName = user.LastName ?? ""
                         }
                     });
                 }
@@ -410,8 +410,9 @@ namespace Kindle_Verse.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error in Login");
-                return StatusCode(500, ex.Message);
+                _logger.LogError(ex, "Login error - Email: {Email}, Error: {ErrorMessage}",
+                    dto.Email, ex.Message);
+                return StatusCode(500, "Internal server error");
             }
         }
 

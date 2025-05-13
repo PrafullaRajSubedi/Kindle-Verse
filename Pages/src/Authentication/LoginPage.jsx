@@ -41,6 +41,7 @@ export default function LoginPage() {
       );
 
       localStorage.setItem('token', response.data.token);
+      localStorage.setItem('userId', response.data.user.id);
       navigate('/home');
     } catch (err) {
       console.error('Login failed:', err);

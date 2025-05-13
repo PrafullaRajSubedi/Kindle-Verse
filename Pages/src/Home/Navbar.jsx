@@ -133,9 +133,9 @@ export default function Navbar() {
                     {isLoggedIn ? (
                       <ul>
                         <li>
-                          <a href="/profile" className="block px-4 py-3 hover:bg-neutral-100">
+                          <Link to="/profile" className="block px-4 py-3 hover:bg-neutral-100">
                             My Profile
-                          </a>
+                          </Link>
                         </li>
                         <li>
                           <button

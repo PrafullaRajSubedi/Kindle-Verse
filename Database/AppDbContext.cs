@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Kindle_Verse.Models;
 using Kindle_Verse.Database.Entities;
+using StackExchange.Redis;
 
 namespace Kindle_Verse.Database
 {
@@ -13,12 +14,13 @@ namespace Kindle_Verse.Database
         {
         }
 
-        // Identity user & role already handled by base class
+        public DbSet<User> Users { get; set; }
         public DbSet<Admin> Admins { get; set; }
         public DbSet<Staff> Staffs { get; set; }
         public DbSet<Book> Books { get; set; }
         public DbSet<Notification> Notifications { get; set; }
         public DbSet<Announcement> Announcements { get; set; }
+
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
@@ -41,9 +43,17 @@ namespace Kindle_Verse.Database
                     Id = 1,
                     Email = "staff@bookstore.com",
                     PasswordHash = "$2a$12$qQwCEm2/JEyLC6.iZNGj0u7FddDg5A5cMXeFtIaDpHiEjfH33jlQG"
-                    // This hash is for password: "staff123"
                 }
             );
+
+            builder.Entity<User>(entity =>
+            {
+                entity.ToTable("AspNetUsers", "public");
+                entity.Property(e => e.FirstName).HasMaxLength(50).IsRequired();
+                entity.Property(e => e.LastName).HasMaxLength(50).IsRequired();
+                entity.HasIndex(e => e.Email).IsUnique();
+            });
+
         }
     }
 }

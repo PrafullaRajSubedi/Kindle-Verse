@@ -11,6 +11,7 @@ import LoginPage from './Authentication/LoginPage.jsx';
 import RegisterPage from './Authentication/RegisterPage.jsx';
 import ForgotPasswordPage from './Authentication/ForgotPasswordPage.jsx';
 import VerifyEmailPage from './Authentication/VerifyEmailPage.jsx';
+import UserProfile from './Home/UserProfile.jsx';
 import AdminApp from './Admin/AdminApp.jsx';
 import Home from './Home/Home.jsx';
 import Navbar from './Home/Navbar.jsx';
@@ -145,6 +146,7 @@ function AppLayout() {
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/home" element={<Home />} />
+            <Route path="/profile" element={<UserProfile />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         )}
