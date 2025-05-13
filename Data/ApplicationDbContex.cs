@@ -30,9 +30,9 @@ namespace CourseWork.Data
                 .HasMany(c => c.CartItems)
                 .WithOne(ci => ci.Cart)
                 .HasForeignKey(ci => ci.CartId)
-                .OnDelete(DeleteBehavior.Cascade); // Auto-delete cart items when cart is deleted
+                .OnDelete(DeleteBehavior.Cascade); 
 
-            // CartItem - Book relationship
+            // CartItem - Book relationship (many-to-one)
             modelBuilder.Entity<CartItem>()
                 .HasOne(ci => ci.Book)
                 .WithMany()
@@ -44,13 +44,13 @@ namespace CourseWork.Data
                 .WithOne(p => p.User)
                 .HasForeignKey(p => p.UserId);
 
-            // Purchase - Book relationship
+            // Purchase - Book relationship (many-to-one)
             modelBuilder.Entity<Purchase>()
                 .HasOne(p => p.Book)
                 .WithMany()
                 .HasForeignKey(p => p.BookId);
 
-            // Review relationships
+            // Review relationships (User and Book)
             modelBuilder.Entity<Review>()
                 .HasOne(r => r.User)
                 .WithMany()

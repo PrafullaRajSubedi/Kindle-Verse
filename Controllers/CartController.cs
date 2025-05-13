@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿
+using Microsoft.AspNetCore.Mvc;
 using CourseWork.Model.Entity;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -21,11 +22,11 @@ namespace CourseWork.Controllers
         }
 
         [HttpPost("add-to-cart")]
-        public async Task<IActionResult> AddToCart(string userId, int bookId, int quantity)
+        public async Task<IActionResult> AddToCart(int userId, int bookId, int quantity)
         {
             try
             {
-                if (string.IsNullOrWhiteSpace(userId))
+                if (userId <= 0)
                     return BadRequest("Valid User ID is required.");
 
                 if (quantity <= 0)
@@ -82,11 +83,11 @@ namespace CourseWork.Controllers
         }
 
         [HttpGet("{userId}")]
-        public async Task<IActionResult> GetCart(string userId)
+        public async Task<IActionResult> GetCart(int userId)
         {
             try
             {
-                if (string.IsNullOrWhiteSpace(userId))
+                if (userId <= 0)
                     return BadRequest("Valid User ID is required.");
 
                 var cart = await _dbContext.Carts
@@ -106,11 +107,11 @@ namespace CourseWork.Controllers
         }
 
         [HttpDelete("{userId}/items/{bookId}")]
-        public async Task<IActionResult> RemoveFromCart(string userId, int bookId)
+        public async Task<IActionResult> RemoveFromCart(int userId, int bookId)
         {
             try
             {
-                if (string.IsNullOrWhiteSpace(userId))
+                if (userId <= 0)
                     return BadRequest("Valid User ID is required.");
 
                 var cart = await _dbContext.Carts
@@ -136,11 +137,11 @@ namespace CourseWork.Controllers
         }
 
         [HttpPut("{userId}/items/{bookId}")]
-        public async Task<IActionResult> UpdateCartItem(string userId, int bookId, [FromBody] UpdateCartItemRequest request)
+        public async Task<IActionResult> UpdateCartItem(int userId, int bookId, [FromBody] UpdateCartItemRequest request)
         {
             try
             {
-                if (string.IsNullOrWhiteSpace(userId))
+                if (userId <= 0)
                     return BadRequest("Valid User ID is required.");
 
                 if (request == null || request.Quantity < 0)

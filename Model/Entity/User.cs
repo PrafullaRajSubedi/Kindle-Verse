@@ -1,12 +1,13 @@
 ﻿using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace CourseWork.Model.Entity
 {
     public class User
     {
         [Key]
-        public string UserId { get; set; } = string.Empty;
+        public int UserId { get; set; }
 
         [Required]
         public string FirstName { get; set; } = string.Empty;
@@ -17,13 +18,19 @@ namespace CourseWork.Model.Entity
         [Required, EmailAddress]
         public string Email { get; set; } = string.Empty;
 
-        [Required]
+        [Required, DataType(DataType.Password)]
         public string Password { get; set; } = string.Empty;
 
-        [Compare(nameof(Password))]
+        [NotMapped]
+        [DataType(DataType.Password)]
+        [Compare("Password", ErrorMessage = "Passwords do not match.")]
         public string ConfirmPassword { get; set; } = string.Empty;
 
+      
         public Cart Cart { get; set; }
-        public ICollection<Purchase> Purchases { get; set; }
+
+        public ICollection<Purchase> Purchases { get; set; } = new List<Purchase>();
+
+        public ICollection<Review> Reviews { get; set; } = new List<Review>();
     }
 }

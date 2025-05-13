@@ -20,11 +20,11 @@ namespace CourseWork.Controllers
         }
 
         [HttpPost("add")]
-        public async Task<IActionResult> AddReview(string userId, int bookId, int rating, string comment)
+        public async Task<IActionResult> AddReview(int userId, int bookId, int rating, string comment)
         {
             try
             {
-                if (string.IsNullOrEmpty(userId))
+                if (userId <= 0)
                     return BadRequest("User ID is required.");
 
                 if (rating < 1 || rating > 5)
