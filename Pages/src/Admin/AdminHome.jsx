@@ -37,12 +37,6 @@ export default function AdminHome() {
     });
 
     const normalize = (b) => {
-        const listPrice = parseFloat(b.originalPrice) || 0;
-        const discount = parseFloat(b.discount) || 0;
-        const salePrice =
-            typeof b.salePrice !== "undefined"
-                ? parseFloat(b.salePrice)
-                : listPrice - discount;
         return {
             Id: b.id,
             Title: b.title,
@@ -53,14 +47,17 @@ export default function AdminHome() {
             Format: b.format,
             Language: b.language,
             PublicationDate: b.publicationDate,
-            OriginalPrice: listPrice,
-            Discount: discount,
-            SalePrice: salePrice,
+            OriginalPrice: parseFloat(b.originalPrice) || 0,
+            SalePrice: parseFloat(b.salePrice) || 0,
+            Discount: parseFloat(b.discount) || 0,
             Stock: b.stock,
             Description: b.description,
             CoverImagePath: b.coverImagePath
         };
     };
+
+
+
 
     useEffect(() => {
         (async () => {
@@ -86,7 +83,15 @@ export default function AdminHome() {
     const makeDto = () => {
         const orig = parseFloat(bookForm.originalPrice) || 0;
         const offer = parseFloat(bookForm.offerPrice) || 0;
-        const disc = bookForm.onSale === "yes" ? orig - offer : 0;
+        const disc = bookForm.onSale === "yes" && offer > 0 && offer < orig ? orig - offer : 0;
+
+        const today = new Date();
+        if (bookForm.offerPriceDate) {
+            today.setTime(Date.parse(bookForm.offerPriceDate));
+        }
+        const tomorrow = new Date(today);
+        tomorrow.setDate(today.getDate() + 1);
+
         return {
             Title: bookForm.title,
             Author: bookForm.author,
@@ -100,11 +105,9 @@ export default function AdminHome() {
             OriginalPrice: orig,
             Stock: parseInt(bookForm.stock, 10),
             Discount: disc,
-            IsOnSale: bookForm.onSale === "yes",
-            DiscountStartDate:
-                bookForm.onSale === "yes" ? bookForm.offerPriceDate : null,
-            DiscountEndDate:
-                bookForm.onSale === "yes" ? bookForm.offerPriceDate : null,
+            IsOnSale: bookForm.onSale === "yes" && disc > 0,
+            DiscountStartDate: bookForm.onSale === "yes" && disc > 0 ? bookForm.offerPriceDate || today.toISOString().split("T")[0] : null,
+            DiscountEndDate: bookForm.onSale === "yes" && disc > 0 ? tomorrow.toISOString().split("T")[0] : null,
             CoverImagePath: bookForm.coverImage
         };
     };
@@ -163,10 +166,9 @@ export default function AdminHome() {
             publicationLanguage: b.Language,
             format: b.Format,
             originalPrice: b.OriginalPrice.toString(),
-            offerPrice:
-                b.Discount > 0 ? (b.OriginalPrice - b.Discount).toString() : "",
-            offerPriceDate:
-                b.Discount > 0 ? b.DiscountStartDate.split("T")[0] : "",
+            // Calculate the correct offer price when a discount is applied
+            offerPrice: b.Discount > 0 ? (b.OriginalPrice - b.Discount).toString() : "",
+            offerPriceDate: b.DiscountStartDate ? b.DiscountStartDate.split("T")[0] : "",
             onSale: b.Discount > 0 ? "yes" : "no",
             stock: b.Stock.toString(),
             description: b.Description,
@@ -179,6 +181,20 @@ export default function AdminHome() {
     const filteredBooks = books.filter((b) =>
         b.Title.toLowerCase().includes(searchQuery.toLowerCase())
     );
+
+    const genreOptions = [
+        "Arts & Photography",
+        "Boxed Sets",
+        "Business and Investing",
+        "Fiction and Literature",
+        "Foreign Languages",
+        "History, Biography, and Politics",
+        "Kids and Teens",
+        "Learning and Reference",
+        "Lifestyle and Wellness",
+        "Manga and Graphic Novels"
+    ];
+
 
     return (
         <div className="flex h-screen bg-gray-100">
@@ -206,8 +222,8 @@ export default function AdminHome() {
                     <Link
                         to="/admin/announcement"
                         className={`block px-4 py-3 hover:bg-indigo-700 ${location.pathname === "/admin/announcement"
-                                ? "bg-indigo-900"
-                                : ""
+                            ? "bg-indigo-900"
+                            : ""
                             }`}
                     >
                         Announcement
@@ -324,13 +340,18 @@ export default function AdminHome() {
                                                     {b.ISBN}
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                    ${b.SalePrice.toFixed(2)}
-                                                    {b.Discount > 0 && (
-                                                        <span className="ml-2 line-through text-gray-400">
-                                                            ${b.OriginalPrice.toFixed(2)}
-                                                        </span>
+                                                    {b.Discount > 0 ? (
+                                                        <>
+                                                            ${(b.OriginalPrice - b.Discount).toFixed(2)}
+                                                            <span className="ml-2 line-through text-gray-400">
+                                                                ${b.OriginalPrice.toFixed(2)}
+                                                            </span>
+                                                        </>
+                                                    ) : (
+                                                        <>${b.OriginalPrice.toFixed(2)}</>
                                                     )}
                                                 </td>
+
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                                     {b.Stock}
                                                 </td>
@@ -444,14 +465,19 @@ export default function AdminHome() {
                                 <label className="block text-sm font-medium text-gray-700 mb-1">
                                     Genre
                                 </label>
-                                <input
-                                    type="text"
+                                <select
                                     name="genre"
                                     value={bookForm.genre}
                                     onChange={handleInputChange}
                                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
-                                    placeholder="Enter genre"
-                                />
+                                >
+                                    <option value="" disabled>Select a genre</option>
+                                    {genreOptions.map((genre) => (
+                                        <option key={genre} value={genre}>
+                                            {genre}
+                                        </option>
+                                    ))}
+                                </select>
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1">

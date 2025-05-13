@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import {
   Search,
@@ -7,7 +7,8 @@ import {
   ShoppingCart,
   Menu,
   X,
-  Bell
+  Bell,
+  CheckCircle
 } from 'lucide-react';
 import axios from 'axios';
 
@@ -16,6 +17,11 @@ export default function Navbar() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [announcementList, setAnnouncementList] = useState([]);
   const [showDropdown, setShowDropdown] = useState(false);
+  const [showUserDropdown, setShowUserDropdown] = useState(false);
+  const [toast, setToast] = useState({ show: false, message: '' });
+  
+  const userDropdownRef = useRef(null);
+  const bellDropdownRef = useRef(null);
 
   const navItems = [
     { label: 'HOME', to: '/' },
@@ -36,6 +42,31 @@ export default function Navbar() {
     return () => clearInterval(interval);
   }, []);
 
+  useEffect(() => {
+    // Close dropdowns when clicking outside
+    function handleClickOutside(event) {
+      if (userDropdownRef.current && !userDropdownRef.current.contains(event.target)) {
+        setShowUserDropdown(false);
+      }
+      if (bellDropdownRef.current && !bellDropdownRef.current.contains(event.target)) {
+        setShowDropdown(false);
+      }
+    }
+    
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  // Auto-hide toast after 3 seconds
+  useEffect(() => {
+    if (toast.show) {
+      const timer = setTimeout(() => {
+        setToast({ show: false, message: '' });
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [toast]);
+
   const fetchAnnouncements = async () => {
     try {
       const res = await axios.get("http://localhost:5126/api/announcement/get-active");
@@ -46,8 +77,15 @@ export default function Navbar() {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem('token');
-    setIsLoggedIn(false);
+    setToast({ show: true, message: 'Logging out...' });
+    
+    // Simulate a small delay for the logout process
+    setTimeout(() => {
+      localStorage.removeItem('token');
+      setIsLoggedIn(false);
+      setShowUserDropdown(false);
+      setToast({ show: true, message: 'Successfully logged out!' });
+    }, 800);
   };
 
   return (
@@ -77,47 +115,53 @@ export default function Navbar() {
                 <Search className="h-5 w-5" />
               </button>
 
-              <div className="relative group">
-                <button aria-label="Account" className="p-2 hover:bg-neutral-100 rounded-full transition">
+              {/* User dropdown with click interaction */}
+              <div className="relative" ref={userDropdownRef}>
+                <button 
+                  aria-label="Account" 
+                  className="p-2 hover:bg-neutral-100 rounded-full transition"
+                  onClick={() => setShowUserDropdown(prev => !prev)}
+                >
                   <User className="h-5 w-5" />
                 </button>
-                <div className="
-                  absolute right-0 mt-2 w-40 bg-white border border-neutral-200
-                  shadow-lg rounded-lg opacity-0 group-hover:opacity-100
-                  pointer-events-none group-hover:pointer-events-auto
-                  transition-opacity
-                ">
-                  {isLoggedIn ? (
-                    <ul>
-                      <li>
-                        <a href="/profile" className="block px-4 py-2 hover:bg-neutral-100">
-                          My Profile
-                        </a>
-                      </li>
-                      <li>
-                        <button
-                          onClick={handleLogout}
-                          className="w-full text-left px-4 py-2 hover:bg-neutral-100"
-                        >
-                          Logout
-                        </button>
-                      </li>
-                    </ul>
-                  ) : (
-                    <ul>
-                      <li>
-                        <Link to="/login" className="block px-4 py-2 hover:bg-neutral-100">
-                          Login
-                        </Link>
-                      </li>
-                      <li>
-                        <Link to="/register" className="block px-4 py-2 hover:bg-neutral-100">
-                          Register
-                        </Link>
-                      </li>
-                    </ul>
-                  )}
-                </div>
+                
+                {showUserDropdown && (
+                  <div className="
+                    absolute right-0 mt-2 w-40 bg-white border border-neutral-200
+                    shadow-lg rounded-lg z-50
+                  ">
+                    {isLoggedIn ? (
+                      <ul>
+                        <li>
+                          <a href="/profile" className="block px-4 py-3 hover:bg-neutral-100">
+                            My Profile
+                          </a>
+                        </li>
+                        <li>
+                          <button
+                            onClick={handleLogout}
+                            className="w-full text-left px-4 py-3 hover:bg-neutral-100"
+                          >
+                            Logout
+                          </button>
+                        </li>
+                      </ul>
+                    ) : (
+                      <ul>
+                        <li>
+                          <Link to="/login" className="block px-4 py-3 hover:bg-neutral-100">
+                            Login
+                          </Link>
+                        </li>
+                        <li>
+                          <Link to="/register" className="block px-4 py-3 hover:bg-neutral-100">
+                            Register
+                          </Link>
+                        </li>
+                      </ul>
+                    )}
+                  </div>
+                )}
               </div>
 
               <button aria-label="Wishlist" className="p-2 hover:bg-neutral-100 rounded-full transition">
@@ -128,7 +172,7 @@ export default function Navbar() {
               </button>
 
               {/* Bell with dynamic announcement dropdown */}
-              <div className="relative">
+              <div className="relative" ref={bellDropdownRef}>
                 <button
                   onClick={() => setShowDropdown(prev => !prev)}
                   aria-label="Notifications"
@@ -188,6 +232,14 @@ export default function Navbar() {
           </div>
         )}
       </header>
+      
+      {/* Toast notification */}
+      {toast.show && (
+        <div className="fixed bottom-5 right-5 bg-white border border-neutral-200 shadow-lg rounded-lg p-4 flex items-center space-x-2 z-50 animate-fade-in">
+          <CheckCircle className="h-5 w-5 text-green-500" />
+          <span>{toast.message}</span>
+        </div>
+      )}
     </>
   );
 }
