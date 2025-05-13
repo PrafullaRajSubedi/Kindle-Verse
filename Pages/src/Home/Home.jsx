@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import axios from "axios";
 import {
   Search,
   User,
@@ -14,31 +15,12 @@ import {
   MapPin,
 } from "lucide-react";
 import harryp from "../assets/harryp.jpg";
-import BestSelling from "../assets/bestselling.jpeg";
-import Available from "../assets/available.jpeg";
+import Book1 from "../assets/bestselling.jpeg";
 
 export default function Home() {
   const [currentSlide, setCurrentSlide] = useState(0);
 
-  const bestsellers = [
-    {
-      id: 1,
-      title: "The Midnight Library",
-      author: "Matt Haig",
-      price: "NPR18.99",
-      rating: 4.5,
-    },
-  ];
-
-  const newArrivals = [
-    {
-      id: 1,
-      title: "The Atlas Paradox",
-      author: "Olivie Blake",
-      price: "NPR24.99",
-      rating: 4.3,
-    },
-  ];
+  const [fetchedBooks, setFetchedBooks] = useState([]);
 
   const heroBooks = [
     {
@@ -161,6 +143,21 @@ export default function Home() {
           }`}
         />
       ));
+
+  useEffect(() => {
+    const fetchBooks = async () => {
+      try {
+        const response = await axios.get(
+          "http://localhost:PORT/api/user-books"
+        );
+        setFetchedBooks(response.data);
+      } catch (error) {
+        console.error("Failed to fetch books:", error);
+      }
+    };
+
+    fetchBooks();
+  }, []);
 
   return (
     <div className="flex flex-col min-h-screen bg-neutral-50">
@@ -312,64 +309,11 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Best Selling Books Section */}
+      {/* Book Section*/}
       <section className="py-16">
         <div className="container mx-auto px-4">
           <div className="flex justify-between items-center mb-8">
-            <h2 className="text-3xl font-bold">Best Selling Books</h2>
-            <a
-              href="#"
-              className="text-blue-700 hover:text-blue-700 font-medium flex items-center"
-            >
-              View All <ChevronRight className="h-4 w-4 ml-1" />
-            </a>
-          </div>
-
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8">
-            {bestsellers.map((book) => (
-              <div key={book.id} className="group">
-                <div className="bg-white rounded-lg shadow-md overflow-hidden transition-all duration-300 hover:shadow-xl">
-                  <div className="relative">
-                    <img
-                      src={Available}
-                      alt={book.title}
-                      className="object-cover w-full h-64 transition-transform duration-300 group-hover:scale-105"
-                    />
-                    <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                      <button className="bg-white p-2 rounded-full shadow-md hover:bg-blue-900 hover:text-white transition-colors">
-                        <ShoppingCart className="h-5 w-5" />
-                      </button>
-                      <button className="bg-white p-2 rounded-full shadow-md hover:bg-blue-900 hover:text-white transition-colors">
-                        <Heart className="h-5 w-5" />
-                      </button>
-                    </div>
-                  </div>
-
-                  <div className="p-4">
-                    <div className="flex items-center space-x-1 mb-2">
-                      {renderStars(book.rating)}
-                    </div>
-
-                    <h3 className="font-bold text-lg mb-1 group-hover:text-blue-700 transition-colors">
-                      {book.title}
-                    </h3>
-                    <p className="text-neutral-600 text-sm mb-2">
-                      {book.author}
-                    </p>
-                    <p className="font-medium text-lg">{book.price}</p>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* New Arrivals Section */}
-      <section className="py-16">
-        <div className="container mx-auto px-4">
-          <div className="flex justify-between items-center mb-8">
-            <h2 className="text-3xl font-bold">Available Books</h2>
+            <h2 className="text-3xl font-bold">Books</h2>
             <a
               href="#"
               className="text-blue-700 hover:text-blue-900 font-medium flex items-center"
@@ -379,18 +323,15 @@ export default function Home() {
           </div>
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8">
-            {newArrivals.map((book) => (
+            {fetchedBooks.map((book) => (
               <div key={book.id} className="group">
                 <div className="bg-white rounded-lg shadow-md overflow-hidden transition-all duration-300 hover:shadow-xl">
                   <div className="relative">
                     <img
-                      src={BestSelling}
+                      src={Book1}
                       alt={book.title}
                       className="object-cover w-full h-64 transition-transform duration-300 group-hover:scale-105"
                     />
-                    <div className="absolute top-0 left-0 bg-blue-700 text-white px-3 py-1 text-xs font-bold">
-                      NEW
-                    </div>
                     <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
                       <button className="bg-white p-2 rounded-full shadow-md hover:bg-blue-700 hover:text-white transition-colors">
                         <ShoppingCart className="h-5 w-5" />
@@ -400,7 +341,6 @@ export default function Home() {
                       </button>
                     </div>
                   </div>
-
                   <div className="p-4">
                     <div className="flex items-center space-x-1 mb-2">
                       {renderStars(book.rating)}
