@@ -8,6 +8,7 @@ using System.Text;
 using Kindle_Verse.Service;
 using Kindle_Verse.Database.Entities;
 using Kindle_Verse.Models;
+using Kindle_Verse.Models.Config;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -22,7 +23,7 @@ builder.Services.AddMemoryCache();
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowReact", policy =>
-        policy.WithOrigins("http://localhost:5173", "http://localhost:3000")
+        policy.WithOrigins("http://localhost:5173")
               .AllowAnyHeader()
               .AllowAnyMethod()
               .AllowCredentials());
@@ -40,6 +41,8 @@ builder.Services.AddIdentity<User, IdentityRole<long>>()
 
 // Configure JWT Authentication
 builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("JwtSettings"));
+builder.Services.AddSingleton<JwtTokenGenerator>();
+builder.Services.AddSingleton<IEmailService, EmailService>();
 builder.Services.AddScoped<JwtService>();
 
 // Configure Email Settings - Make sure this is properly configured

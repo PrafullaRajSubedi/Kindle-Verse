@@ -5,6 +5,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using Kindle_Verse.Models;
 using System.Text;
+using Kindle_Verse.Models.Config;
 
 namespace Kindle_Verse.Service
 {
