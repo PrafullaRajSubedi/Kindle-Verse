@@ -11,9 +11,9 @@ namespace Kindle_Verse.Controllers
     [Route("api/user-books")]
     public class UsersBookController : ControllerBase
     {
-        private readonly ApplicationDbContext _context;
+        private readonly AppDbContext _context;
 
-        public UsersBookController(ApplicationDbContext context)
+        public UsersBookController(AppDbContext context)
         {
             _context = context;
         }
