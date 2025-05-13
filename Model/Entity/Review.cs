@@ -8,7 +8,7 @@ namespace CourseWork.Model.Entity
         public int Id { get; set; }
 
         [Required]
-        public int UserId { get; set; }  // ✅ int, not string
+        public int UserId { get; set; } 
 
         [Required]
         public int BookId { get; set; }
@@ -26,7 +26,7 @@ namespace CourseWork.Model.Entity
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
-        // Navigation property for User (this can be added if needed)
+       
         public User User { get; set; }
     }
 }

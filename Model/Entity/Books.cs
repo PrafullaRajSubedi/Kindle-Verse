@@ -2,10 +2,10 @@
 {
     public class Books
     {
-        // This is the primary key for the Books entity
-        public int Id { get; set; }  // Int type primary key, appropriate for the relationship mapping
+        
+        public int Id { get; set; }  
 
-        public string Title { get; set; }           // Title of the book
+        public string Title { get; set; }           
         public string ISBN { get; set; }            // ISBN identifier of the book
         public string Author { get; set; }          // Author of the book
         public string Description { get; set; }     // Short description or synopsis of the book

@@ -5,7 +5,7 @@
         public int Id { get; set; }
 
         // Foreign Key for User
-        public int UserId { get; set; }  // ✅ int, consistent with User
+        public int UserId { get; set; }  
 
         // Navigation property for User
         public User User { get; set; }
