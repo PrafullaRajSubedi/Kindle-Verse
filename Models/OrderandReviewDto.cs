@@ -15,7 +15,6 @@ namespace Kindle_Verse.Models
         public int UserId { get; set; }
         public string UserName { get; set; }
         public List<OrderItemDto> OrderItems { get; set; } = new List<OrderItemDto>();
-        public List<ReviewDto> Reviews { get; set; } = new List<ReviewDto>();
     }
 
     public class CreateOrderDto
@@ -54,41 +53,5 @@ namespace Kindle_Verse.Models
         [Required]
         [Range(0.01, double.MaxValue)]
         public decimal Price { get; set; }
-    }
-
-    // DTOs for Reviews
-    public class ReviewDto
-    {
-        public int Id { get; set; }
-        public int UserId { get; set; }
-        public int OrderId { get; set; }
-        public int Rating { get; set; }
-        public string Comment { get; set; }
-        public DateTime CreatedAt { get; set; }
-        public DateTime? UpdatedAt { get; set; }
-        public string UserName { get; set; }
-    }
-
-    public class CreateReviewDto
-    {
-        [Required]
-        public int OrderId { get; set; }
-
-        [Required]
-        [Range(1, 5)]
-        public int Rating { get; set; }
-
-        [StringLength(1000)]
-        public string Comment { get; set; }
-    }
-
-    public class UpdateReviewDto
-    {
-        [Required]
-        [Range(1, 5)]
-        public int Rating { get; set; }
-
-        [StringLength(1000)]
-        public string Comment { get; set; }
     }
 }

@@ -35,12 +35,10 @@ namespace Kindle_Verse.Controllers
                     return NotFound(new { Message = "User not found." });
                 }
 
-                // Get all orders for the user including order items and reviews
+                // Get all orders for the user including order items
                 var orders = await _context.Orders
                     .Where(o => o.UserId == userId)
                     .Include(o => o.OrderItems)
-                    .Include(o => o.Reviews)
-                        .ThenInclude(r => r.User)
                     .Include(o => o.User)
                     .OrderByDescending(o => o.OrderDate)
                     .Select(o => new OrderDto
@@ -59,18 +57,7 @@ namespace Kindle_Verse.Controllers
                             Quantity = oi.Quantity,
                             Price = oi.Price,
                             OrderId = oi.OrderId
-                        }).ToList() : new List<OrderItemDto>(),
-                        Reviews = o.Reviews != null ? o.Reviews.Select(r => new ReviewDto
-                        {
-                            Id = r.Id,
-                            UserId = r.UserId,
-                            OrderId = r.OrderId,
-                            Rating = r.Rating,
-                            Comment = r.Comment,
-                            CreatedAt = r.CreatedAt,
-                            UpdatedAt = r.UpdatedAt,
-                            UserName = r.User != null ? $"{r.User.FirstName} {r.User.LastName}" : null
-                        }).ToList() : new List<ReviewDto>()
+                        }).ToList() : new List<OrderItemDto>()
                     })
                     .ToListAsync();
 
@@ -91,8 +78,6 @@ namespace Kindle_Verse.Controllers
             {
                 var order = await _context.Orders
                     .Include(o => o.OrderItems)
-                    .Include(o => o.Reviews)
-                        .ThenInclude(r => r.User)
                     .Include(o => o.User)
                     .FirstOrDefaultAsync(o => o.Id == id);
 
@@ -118,18 +103,7 @@ namespace Kindle_Verse.Controllers
                         Quantity = oi.Quantity,
                         Price = oi.Price,
                         OrderId = oi.OrderId
-                    }).ToList() ?? new List<OrderItemDto>(),
-                    Reviews = order.Reviews?.Select(r => new ReviewDto
-                    {
-                        Id = r.Id,
-                        UserId = r.UserId,
-                        OrderId = r.OrderId,
-                        Rating = r.Rating,
-                        Comment = r.Comment,
-                        CreatedAt = r.CreatedAt,
-                        UpdatedAt = r.UpdatedAt,
-                        UserName = r.User != null ? $"{r.User.FirstName} {r.User.LastName}" : null
-                    }).ToList() ?? new List<ReviewDto>()
+                    }).ToList() ?? new List<OrderItemDto>()
                 };
 
                 return Ok(orderDto);
