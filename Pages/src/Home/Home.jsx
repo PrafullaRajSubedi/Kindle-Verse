@@ -20,22 +20,28 @@ import harryp from "../assets/harryp.jpg";
 export default function Home() {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [fetchedBooks, setFetchedBooks] = useState([]);
+  // Pagination states
+  const [currentPage, setCurrentPage] = useState(1);
+  const [booksPerPage] = useState(4); // Show 4 books per page (2 rows of 4 books)
 
   // Calculate heroBooks dynamically based on discounted books
   const heroBooks = useMemo(() => {
     // Filter books that are on sale and have discount information
-    const booksOnSale = fetchedBooks.filter(book => 
-      book.isOnSale && 
-      book.originalPrice && 
-      book.salePrice && 
-      book.originalPrice > book.salePrice
+    const booksOnSale = fetchedBooks.filter(
+      (book) =>
+        book.isOnSale &&
+        book.originalPrice &&
+        book.salePrice &&
+        book.originalPrice > book.salePrice
     );
-    
+
     // Calculate discount percentage for each book
-    const booksWithDiscount = booksOnSale.map(book => {
+    const booksWithDiscount = booksOnSale.map((book) => {
       const discountAmount = book.originalPrice - book.salePrice;
-      const discountPercentage = Math.round((discountAmount / book.originalPrice) * 100);
-      
+      const discountPercentage = Math.round(
+        (discountAmount / book.originalPrice) * 100
+      );
+
       return {
         id: book.id,
         title: book.title,
@@ -45,12 +51,11 @@ export default function Home() {
         coverImagePath: book.coverImagePath,
       };
     });
-    
+
     // Sort by discount percentage (highest first) and take top 3
     return booksWithDiscount
       .sort((a, b) => b.discountValue - a.discountValue)
       .slice(0, 3);
-      
   }, [fetchedBooks]);
 
   const genres = [
@@ -130,7 +135,7 @@ export default function Home() {
     if (heroBooks.length <= 1) return; // Don't slide if there's only 0 or 1 book
     setCurrentSlide((prev) => (prev === heroBooks.length - 1 ? 0 : prev + 1));
   };
-  
+
   const prevSlide = () => {
     if (heroBooks.length <= 1) return; // Don't slide if there's only 0 or 1 book
     setCurrentSlide((prev) => (prev === 0 ? heroBooks.length - 1 : prev - 1));
@@ -156,10 +161,11 @@ export default function Home() {
       .map((_, i) => (
         <Star
           key={i}
-          className={`h-4 w-4 ${i < Math.floor(rating)
+          className={`h-4 w-4 ${
+            i < Math.floor(rating)
               ? "text-yellow-400 fill-yellow-400"
               : "text-gray-300"
-            }`}
+          }`}
         />
       ));
 
@@ -177,6 +183,71 @@ export default function Home() {
 
     fetchBooks();
   }, []);
+
+  const handleBookmark = async (bookId) => {
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) return alert("You must be logged in to bookmark.");
+
+      await axios.post(
+        `http://localhost:5126/api/bookmarks/${bookId}`,
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      alert("Book bookmarked successfully!");
+    } catch (error) {
+      console.error("Error bookmarking:", error);
+      alert(
+        error.response?.data || "Failed to bookmark. Maybe already bookmarked?"
+      );
+    }
+  };
+
+  // Get current books for pagination
+  const indexOfLastBook = currentPage * booksPerPage;
+  const indexOfFirstBook = indexOfLastBook - booksPerPage;
+  const currentBooks = fetchedBooks.slice(indexOfFirstBook, indexOfLastBook);
+
+  // Calculate total pages
+  const totalPages = Math.ceil(fetchedBooks.length / booksPerPage);
+
+  // Change page
+  const paginate = (pageNumber) => setCurrentPage(pageNumber);
+  const nextPage = () =>
+    setCurrentPage((prev) => (prev < totalPages ? prev + 1 : prev));
+  const prevPage = () => setCurrentPage((prev) => (prev > 1 ? prev - 1 : prev));
+
+  const handleAddToCart = async (bookId) => {
+    const token = localStorage.getItem("token");
+    const userId = localStorage.getItem("userId");
+
+    if (!token || !userId) {
+      alert("Please login to add to cart.");
+      return;
+    }
+
+    try {
+      await axios.post(
+        `http://localhost:5126/api/cart/add-to-cart?userId=${userId}&bookId=${bookId}&quantity=1`,
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      alert("Book added to cart successfully!");
+    } catch (error) {
+      console.error("Failed to add to cart:", error);
+      alert(error.response?.data || "Failed to add to cart.");
+    }
+  };
 
   return (
     <div className="flex flex-col min-h-screen bg-neutral-50">
@@ -282,7 +353,8 @@ export default function Home() {
                   <AlertCircle className="h-16 w-16 text-blue-700 mx-auto mb-4" />
                   <h2 className="text-3xl font-bold mb-4">No Books On Sale</h2>
                   <p className="text-lg text-neutral-600 mb-6">
-                    There are currently no book offers available. Check back later for exciting discounts!
+                    There are currently no book offers available. Check back
+                    later for exciting discounts!
                   </p>
                   <button className="bg-blue-700 hover:bg-blue-900 text-white px-6 py-3 rounded-full font-medium shadow-lg hover:shadow-xl transition-all">
                     Browse All Books
@@ -350,7 +422,6 @@ export default function Home() {
         </div>
       </section>
 
-
       {/* Book Section*/}
       <section className="py-16">
         <div className="container mx-auto px-4">
@@ -365,7 +436,7 @@ export default function Home() {
           </div>
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8">
-            {fetchedBooks.map((book) => (
+            {currentBooks.map((book) => (
               <div key={book.id} className="group">
                 <div className="bg-white rounded-lg shadow-md overflow-hidden transition-all duration-300 hover:shadow-xl">
                   <div className="relative">
@@ -380,10 +451,17 @@ export default function Home() {
                       </div>
                     )}
                     <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                      <button className="bg-white p-2 rounded-full shadow-md hover:bg-blue-700 hover:text-white transition-colors">
+                      <button
+                        onClick={() => handleAddToCart(book.id)}
+                        className="bg-white p-2 rounded-full shadow-md hover:bg-blue-700 hover:text-white transition-colors"
+                      >
                         <ShoppingCart className="h-5 w-5" />
                       </button>
-                      <button className="bg-white p-2 rounded-full shadow-md hover:bg-blue-700 hover:text-white transition-colors">
+
+                      <button
+                        className="bg-white p-2 rounded-full shadow-md hover:bg-blue-700 hover:text-white transition-colors"
+                        onClick={() => handleBookmark(book.id)}
+                      >
                         <Heart className="h-5 w-5" />
                       </button>
                     </div>
@@ -408,12 +486,57 @@ export default function Home() {
                         </span>
                       )}
                     </p>
-
                   </div>
                 </div>
               </div>
             ))}
           </div>
+
+          {/* Pagination Controls */}
+          {totalPages > 1 && (
+            <div className="flex justify-center mt-12">
+              <div className="flex items-center space-x-2">
+                <button
+                  onClick={prevPage}
+                  disabled={currentPage === 1}
+                  className={`flex items-center justify-center w-10 h-10 rounded-full border ${
+                    currentPage === 1
+                      ? "border-neutral-200 text-neutral-400 cursor-not-allowed"
+                      : "border-blue-700 text-blue-700 hover:bg-blue-700 hover:text-white"
+                  } transition-colors`}
+                >
+                  <ChevronLeft className="h-5 w-5" />
+                </button>
+
+                {/* Generate page number buttons */}
+                {[...Array(totalPages).keys()].map((number) => (
+                  <button
+                    key={number + 1}
+                    onClick={() => paginate(number + 1)}
+                    className={`flex items-center justify-center w-10 h-10 rounded-full ${
+                      currentPage === number + 1
+                        ? "bg-blue-700 text-white"
+                        : "border border-neutral-200 hover:border-blue-700 hover:text-blue-700"
+                    } transition-colors`}
+                  >
+                    {number + 1}
+                  </button>
+                ))}
+
+                <button
+                  onClick={nextPage}
+                  disabled={currentPage === totalPages}
+                  className={`flex items-center justify-center w-10 h-10 rounded-full border ${
+                    currentPage === totalPages
+                      ? "border-neutral-200 text-neutral-400 cursor-not-allowed"
+                      : "border-blue-700 text-blue-700 hover:bg-blue-700 hover:text-white"
+                  } transition-colors`}
+                >
+                  <ChevronRight className="h-5 w-5" />
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </section>
     </div>

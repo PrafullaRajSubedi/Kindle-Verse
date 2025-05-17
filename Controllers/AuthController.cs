@@ -399,7 +399,7 @@ namespace Kindle_Verse.Controllers
                         Token = token,
                         User = new
                         {
-                            Id = user.Id,
+                            userId = user.Id,
                             Email = user.Email,
                             FirstName = user.FirstName,
                             LastName = user.LastName
@@ -410,7 +410,7 @@ namespace Kindle_Verse.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error in Login");
+                _logger.LogError(ex, "Error in Login: {Message}", ex.InnerException?.Message);
                 return StatusCode(500, ex.Message);
             }
         }
