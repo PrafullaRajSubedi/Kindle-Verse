@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 ﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -135,18 +136,39 @@ var app = builder.Build();
 app.UseCors("AllowReact");
 
 // Enable Swagger for testing
+=======
+var builder = WebApplication.CreateBuilder(args);
+
+// Add services to the container.
+
+builder.Services.AddControllers();
+// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
+
+var app = builder.Build();
+
+// Configure the HTTP request pipeline.
+>>>>>>> origin/master
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
 }
 
+<<<<<<< HEAD
 // Enable authentication and authorization
 app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
 
 // Map controllers
+=======
+app.UseHttpsRedirection();
+
+app.UseAuthorization();
+
+>>>>>>> origin/master
 app.MapControllers();
 
 app.Run();
