@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Authentication.JwtBearer;
+﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -12,7 +12,7 @@ using Kindle_Verse.Models.Config;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Configure loggingcor
+// Configure logging
 builder.Logging.ClearProviders();
 builder.Logging.AddConsole();
 builder.Logging.AddDebug();
@@ -39,27 +39,66 @@ builder.Services.AddIdentity<User, IdentityRole<long>>()
     .AddEntityFrameworkStores<AppDbContext>()
     .AddDefaultTokenProviders();
 
-// Configure JWT Authentication
-builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("JwtSettings"));
-builder.Services.AddSingleton<JwtTokenGenerator>();
-builder.Services.AddSingleton<IEmailService, EmailService>();
-builder.Services.AddScoped<JwtService>();
-
-// Configure Email Settings - Make sure this is properly configured
+// Configure Email Settings
 var emailSettings = builder.Configuration.GetSection("EmailSettings");
 builder.Services.Configure<EmailSettings>(emailSettings);
 
-// Add the following lines to verify EmailSettings is being loaded correctly
 Console.WriteLine($"Email Settings - FromEmail: {emailSettings["FromEmail"]}");
 Console.WriteLine($"Email Settings - SmtpServer: {emailSettings["SmtpServer"]}");
 Console.WriteLine($"Email Settings - Port: {emailSettings["Port"]}");
 Console.WriteLine($"Email Settings - Username: {emailSettings["Username"]}");
-Console.WriteLine($"Email Settings - Password: {emailSettings["Password"]?.Substring(0, 3)}***"); // Only log first 3 chars of password for security
+Console.WriteLine($"Email Settings - Password: {emailSettings["Password"]?.Substring(0, 3)}***");
 
-// Add controllers (ensure controllers are added before building the app)
+// Add JWT services
+builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("JwtSettings"));
+builder.Services.AddSingleton<JwtTokenGenerator>();
+builder.Services.AddSingleton<IEmailService, EmailService>();
+builder.Services.AddScoped<JwtService>();
+builder.Services.AddScoped<PromoService>();
+
+
+// 🔥 Suppress redirect for unauthorized requests
+builder.Services.Configure<Microsoft.AspNetCore.Authentication.AuthenticationOptions>(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+});
+
+// Configure JWT Authentication
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        var jwtSettings = builder.Configuration.GetSection("JwtSettings").Get<JwtSettings>();
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            ValidIssuer = builder.Configuration["JwtSettings:Issuer"],
+            ValidAudience = builder.Configuration["JwtSettings:Audience"],
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["JwtSettings:Key"])),
+            ClockSkew = TimeSpan.Zero
+        };
+
+        // Prevent redirect to /Account/Login
+        options.Events = new JwtBearerEvents
+        {
+            OnChallenge = context =>
+            {
+                context.HandleResponse();
+                context.Response.StatusCode = 401;
+                context.Response.ContentType = "application/json";
+                return context.Response.WriteAsync("{\"error\":\"Unauthorized\"}");
+            }
+        };
+    });
+
+// Register controllers
 builder.Services.AddControllers();
 
-// Swagger and Authentication setup (JWT Authorization)
+// Enable Swagger + JWT support
 builder.Services.AddSwaggerGen(options =>
 {
     options.SwaggerDoc("v1", new OpenApiInfo { Title = "API", Version = "v1" });
@@ -92,23 +131,6 @@ builder.Services.AddSwaggerGen(options =>
     });
 });
 
-builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-    .AddJwtBearer(options =>
-    {
-        var jwtSettings = builder.Configuration.GetSection("JwtSettings").Get<JwtSettings>();
-        options.TokenValidationParameters = new TokenValidationParameters
-        {
-            ValidateIssuer = true,
-            ValidateAudience = true,
-            ValidateLifetime = true,
-            ValidateIssuerSigningKey = true,
-            ValidIssuer = builder.Configuration["JwtSettings:Issuer"],
-            ValidAudience = builder.Configuration["JwtSettings:Audience"],
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["JwtSettings:Key"])),
-            ClockSkew = TimeSpan.Zero
-        };
-    });
-
 var app = builder.Build();
 
 // Enable CORS for React
@@ -121,7 +143,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-// Enable HTTPS redirection and JWT authentication
+// Enable authentication and authorization
 app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();

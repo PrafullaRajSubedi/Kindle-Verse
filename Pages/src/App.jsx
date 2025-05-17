@@ -1,54 +1,74 @@
-import React from 'react';
+import React from "react";
 import {
   BrowserRouter as Router,
   Routes,
   Route,
   Navigate,
-  useLocation
-} from 'react-router-dom';
+  useLocation,
+} from "react-router-dom";
 
-import LoginPage from './Authentication/LoginPage.jsx';
-import RegisterPage from './Authentication/RegisterPage.jsx';
-import ForgotPasswordPage from './Authentication/ForgotPasswordPage.jsx';
-import VerifyEmailPage from './Authentication/VerifyEmailPage.jsx';
-import AdminApp from './Admin/AdminApp.jsx';
-import Home from './Home/Home.jsx';
-import Navbar from './Home/Navbar.jsx';
-import Footer from './Home/Footer.jsx';
+import LoginPage from "./Authentication/LoginPage.jsx";
+import RegisterPage from "./Authentication/RegisterPage.jsx";
+import ForgotPasswordPage from "./Authentication/ForgotPasswordPage.jsx";
+import VerifyEmailPage from "./Authentication/VerifyEmailPage.jsx";
+import AdminApp from "./Admin/AdminApp.jsx";
+import Home from "./Home/Home.jsx";
+import Navbar from "./Home/Navbar.jsx";
+import Footer from "./Home/Footer.jsx";
+import UserProfile from "./Home/UserProfile.jsx";
+import BookMarks from "./Bookmark/Bookmark.jsx";
+import BookDetail from "./Book Details/BookDetails.jsx";
+import AddtoCart from "./Cart/AddtoCart.jsx";
 
 // Staff Components
-import StaffLogin from './Staff/StaffLogin.jsx';
-import StaffPanel from './Staff/StaffPanel.jsx';
+import StaffLogin from "./Staff/StaffLogin.jsx";
+import StaffPanel from "./Staff/StaffPanel.jsx";
 
 function usePageKey() {
   const { pathname } = useLocation();
   switch (pathname) {
-    case '/login': return 'login';
-    case '/register': return 'register';
-    case '/forgot-password': return 'forgot-password';
-    case '/verify-email': return 'verify-email';
-    case '/':
-    case '/home': return 'home';
-    default: return 'home';
+    case "/login":
+      return "login";
+    case "/register":
+      return "register";
+    case "/forgot-password":
+      return "forgot-password";
+    case "/verify-email":
+      return "verify-email";
+    case "/":
+    case "/home":
+      return "home";
+    default:
+      return "home";
   }
 }
 
 function getTagline(page) {
   switch (page) {
-    case 'login': return 'Enter a World of Stories';
-    case 'register': return 'Begin Your Literary Journey';
-    case 'forgot-password': return 'Unlock Your Account';
-    case 'verify-email': return 'One Step Closer';
-    default: return 'Welcome to Kindle Verse';
+    case "login":
+      return "Enter a World of Stories";
+    case "register":
+      return "Begin Your Literary Journey";
+    case "forgot-password":
+      return "Unlock Your Account";
+    case "verify-email":
+      return "One Step Closer";
+    default:
+      return "Welcome to Kindle Verse";
   }
 }
 function getSubtagline(page) {
   switch (page) {
-    case 'login': return 'Reconnect with your virtual bookshelf';
-    case 'register': return 'Create your personal library in the cloud';
-    case 'forgot-password': return 'Reset your key to the world of literature';
-    case 'verify-email': return 'Your literary adventure awaits';
-    default: return 'Your gateway to endless stories';
+    case "login":
+      return "Reconnect with your virtual bookshelf";
+    case "register":
+      return "Create your personal library in the cloud";
+    case "forgot-password":
+      return "Reset your key to the world of literature";
+    case "verify-email":
+      return "Your literary adventure awaits";
+    default:
+      return "Your gateway to endless stories";
   }
 }
 
@@ -66,9 +86,15 @@ function AppLayout() {
   const tagline = getTagline(page);
   const subtag = getSubtagline(page);
 
-  const isAuthPage = ['login', 'register', 'forgot-password', 'verify-email'].includes(page);
-  const isAdminPage = pathname.startsWith('/admin');
-  const isStaffPage = pathname.startsWith('/staff-panel') || pathname === '/staff-login';
+  const isAuthPage = [
+    "login",
+    "register",
+    "forgot-password",
+    "verify-email",
+  ].includes(page);
+  const isAdminPage = pathname.startsWith("/admin");
+  const isStaffPage =
+    pathname.startsWith("/staff-panel") || pathname === "/staff-login";
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -83,7 +109,7 @@ function AppLayout() {
                 className="absolute top-0 left-0 w-full h-full bg-repeat opacity-5"
                 style={{
                   backgroundImage:
-                    'url("data:image/svg+xml,%3Csvg width=\'100\' height=\'100\' viewBox=\'0 0 100 100\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cpath d=\'M30 35 L50 15 L70 35 L50 55 Z\' fill=\'%230369a1\' fill-opacity=\'0.8\'/%3E%3C/svg%3E")'
+                    "url(\"data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M30 35 L50 15 L70 35 L50 55 Z' fill='%230369a1' fill-opacity='0.8'/%3E%3C/svg%3E\")",
                 }}
               />
               <div className="absolute top-1/4 left-1/6 w-12 h-16 bg-blue-100 rounded-md shadow-md transform -rotate-12 opacity-30" />
@@ -98,9 +124,7 @@ function AppLayout() {
                   <h2 className="text-4xl md:text-5xl font-bold mb-6 text-blue-900">
                     {tagline}
                   </h2>
-                  <p className="text-lg md:text-xl text-blue-800">
-                    {subtag}
-                  </p>
+                  <p className="text-lg md:text-xl text-blue-800">{subtag}</p>
                   <div className="relative h-64 w-full">
                     <div className="absolute bottom-0 left-8 w-32 h-40 bg-gradient-to-br from-blue-700 to-blue-800 rounded-r-md rounded-b-md shadow-lg transform -rotate-6" />
                     <div className="absolute bottom-0 left-16 w-32 h-40 bg-gradient-to-br from-amber-500 to-amber-600 rounded-r-md rounded-b-md shadow-lg transform rotate-3" />
@@ -115,15 +139,16 @@ function AppLayout() {
                   <h2 className="text-3xl font-bold mb-2 text-blue-900">
                     {tagline}
                   </h2>
-                  <p className="text-lg text-blue-800">
-                    {subtag}
-                  </p>
+                  <p className="text-lg text-blue-800">{subtag}</p>
                 </div>
 
                 <Routes>
                   <Route path="/login" element={<LoginPage />} />
                   <Route path="/register" element={<RegisterPage />} />
-                  <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+                  <Route
+                    path="/forgot-password"
+                    element={<ForgotPasswordPage />}
+                  />
                   <Route path="/verify-email" element={<VerifyEmailPage />} />
                 </Routes>
               </div>
@@ -146,6 +171,11 @@ function AppLayout() {
             <Route path="/" element={<Home />} />
             <Route path="/home" element={<Home />} />
             <Route path="*" element={<Navigate to="/" replace />} />
+            <Route path="/cart" element={<AddtoCart />} />
+            <Route path="/profile" element={<UserProfile />} />
+            <Route path="/bookmarks" element={<BookMarks />} />
+            {/* <Route path="/book/:id" element={<BookDetail />} /> */}
+            <Route path="/book-details" element={<BookDetail />} />
           </Routes>
         )}
       </div>

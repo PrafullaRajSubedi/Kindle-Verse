@@ -1,37 +1,48 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Check, X } from "lucide-react";
+import axios from "axios";
 
 const StaffOrders = () => {
-  const [orders, setOrders] = useState([
-    {
-      sn: 1,
-      oid: "401",
-      uid: "U7823",
-      otp: "923376",
-      status: "pending",
-    },
-    {
-      sn: 2,
-      oid: "402",
-      uid: "U5491",
-      otp: "781245",
-      status: "pending",
-    },
-    {
-      sn: 3,
-      oid: "403",
-      uid: "U7823",
-      otp: "654321",
-      status: "pending",
-    },
-  ]);
+  const [orders, setOrders] = useState([]);
 
-  const handleStatusChange = (orderId, newStatus) => {
-    setOrders(
-      orders.map((order) =>
-        order.oid === orderId ? { ...order, status: newStatus } : order
-      )
-    );
+  useEffect(() => {
+    fetchOrders();
+  }, []);
+
+  const fetchOrders = async () => {
+    try {
+      const res = await axios.get("http://localhost:5126/api/orders/staff");
+      setOrders(res.data);
+    } catch (err) {
+      console.error("Failed to fetch orders:", err);
+    }
+  };
+
+  const handleStatusChange = async (orderId) => {
+    try {
+      await axios.put(
+        `http://localhost:5126/api/orders/${orderId}/status`,
+        { status: "Completed" },
+        { params: { userId: 0 } } // Replace with actual staff ID if needed
+      );
+
+      setOrders((prev) =>
+        prev.map((order) =>
+          order.id === orderId ? { ...order, status: "Completed" } : order
+        )
+      );
+    } catch (err) {
+      console.error("Failed to update order status:", err);
+    }
+  };
+
+  const handleDeleteOrder = async (orderId) => {
+    try {
+      await axios.delete(`http://localhost:5126/api/orders/${orderId}`);
+      setOrders((prev) => prev.filter((order) => order.id !== orderId));
+    } catch (err) {
+      console.error("Failed to delete order:", err);
+    }
   };
 
   return (
@@ -45,80 +56,123 @@ const StaffOrders = () => {
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
-                <th
-                  scope="col"
-                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                >
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                   SN
                 </th>
-                <th
-                  scope="col"
-                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                >
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                   Order ID
                 </th>
-                <th
-                  scope="col"
-                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                >
-                  User ID
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                  Order #
                 </th>
-                <th
-                  scope="col"
-                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                >
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                  User
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                   OTP
                 </th>
-                <th
-                  scope="col"
-                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                >
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                  Status
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                  Total (Rs)
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                  Items
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                   Actions
                 </th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {orders.map((order) => (
-                <tr
-                  key={order.oid}
-                  className="hover:bg-gray-50 transition-colors"
-                >
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {order.sn}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                    #{order.oid}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {order.uid}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-mono font-medium text-gray-900">
-                    {order.otp}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="flex space-x-2">
-                      <button
-                        onClick={() =>
-                          handleStatusChange(order.oid, "approved")
-                        }
-                        className="bg-green-500 hover:bg-green-600 text-white p-2 rounded-md transition-colors"
-                        title="Approve"
-                      >
-                        <Check size={16} />
-                      </button>
-                      <button
-                        onClick={() =>
-                          handleStatusChange(order.oid, "rejected")
-                        }
-                        className="bg-red-500 hover:bg-red-600 text-white p-2 rounded-md transition-colors"
-                        title="Reject"
-                      >
-                        <X size={16} />
-                      </button>
-                    </div>
+              {orders.map((order, index) => {
+                const originalTotal = order.items.reduce(
+                  (sum, item) => sum + item.quantity * item.price,
+                  0
+                );
+                const discountAmount = originalTotal - order.totalAmount;
+                const discountPercentage =
+                  originalTotal > 0
+                    ? ((discountAmount / originalTotal) * 100).toFixed(1)
+                    : 0;
+
+                return (
+                  <tr
+                    key={order.id}
+                    className="hover:bg-gray-50 transition-colors"
+                  >
+                    <td className="px-6 py-4 text-sm text-gray-500">
+                      {index + 1}
+                    </td>
+                    <td className="px-6 py-4 text-sm font-medium text-gray-900">
+                      #{order.id}
+                    </td>
+                    <td className="px-6 py-4 text-sm font-medium text-gray-900">
+                      {order.orderNumber || "-"}
+                    </td>
+                    <td className="px-6 py-4 text-sm text-gray-500">
+                      {order.userName || `User #${order.userId}`}
+                    </td>
+                    <td className="px-6 py-4 text-sm font-mono text-gray-900">
+                      {order.otp || "-"}
+                    </td>
+                    <td className="px-6 py-4 text-sm text-gray-700">
+                      {order.status}
+                    </td>
+                    <td className="px-6 py-4 text-sm text-gray-700">
+                      <div>
+                        <div className="font-medium">
+                          {order.totalAmount?.toFixed(2)}
+                        </div>
+                        {discountAmount > 0 && (
+                          <div className="text-xs text-green-600">
+                            {discountPercentage}% off from{" "}
+                            {originalTotal.toFixed(2)}
+                          </div>
+                        )}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 text-sm text-gray-700">
+                      <ul className="space-y-1 text-sm text-gray-800 list-disc pl-4">
+                        {order.items?.map((item, idx) => (
+                          <li key={idx}>
+                            {item.productName} × {item.quantity} (Rs{" "}
+                            {item.price.toFixed(2)})
+                          </li>
+                        ))}
+                      </ul>
+                    </td>
+
+                    <td className="px-6 py-4">
+                      <div className="flex space-x-2">
+                        <button
+                          onClick={() => handleStatusChange(order.id)}
+                          className="bg-green-500 hover:bg-green-600 text-white p-2 rounded-md"
+                          title="Mark as Completed"
+                          disabled={order.status === "Completed"}
+                        >
+                          <Check size={16} />
+                        </button>
+                        <button
+                          onClick={() => handleDeleteOrder(order.id)}
+                          className="bg-red-500 hover:bg-red-600 text-white p-2 rounded-md"
+                          title="Delete Order"
+                        >
+                          <X size={16} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
+              {orders.length === 0 && (
+                <tr>
+                  <td colSpan={9} className="text-center text-gray-500 py-4">
+                    No orders available.
                   </td>
                 </tr>
-              ))}
+              )}
             </tbody>
           </table>
         </div>
